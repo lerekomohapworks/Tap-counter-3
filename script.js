@@ -1,40 +1,53 @@
-const tapArea = document.getElementById("tapArea");
-const singleInput = document.getElementById("singleCount");
-const doubleInput = document.getElementById("doubleCount");
-const longInput = document.getElementById("longCount");
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
 
-let lastTapTime = 0;
-let tapTimeout = null;
-let longPressTimeout = null;
-let isLongPress = false;
+  /* 🔒 Prevent zoom and gestures */
+  touch-action: none;
+  -ms-touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow-x: hidden;
+}
 
-tapArea.addEventListener("touchstart", () => {
-  isLongPress = false;
+.container {
+  text-align: center;
+  margin-top: 50px;
+}
 
-  longPressTimeout = setTimeout(() => {
-    isLongPress = true;
-    longInput.value = parseInt(longInput.value) + 1;
-  }, 500); // 500ms = long press
-});
+#tapArea {
+  background-color: #fff;
+  padding: 60px;
+  margin: 30px;
+  border: 2px dashed #333;
+  border-radius: 10px;
+  cursor: pointer;
 
-tapArea.addEventListener("touchend", () => {
-  const currentTime = Date.now();
-  const timeSinceLastTap = currentTime - lastTapTime;
+  /* Make sure zoom doesn't trigger */
+  touch-action: manipulation;
+}
 
-  clearTimeout(longPressTimeout);
+.counters {
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
 
-  if (isLongPress) {
-    return; // already counted as long tap
-  }
+label {
+  font-size: 18px;
+}
 
-  if (timeSinceLastTap < 300) {
-    clearTimeout(tapTimeout); // cancel single tap
-    doubleInput.value = parseInt(doubleInput.value) + 1;
-    lastTapTime = 0;
-  } else {
-    lastTapTime = currentTime;
-    tapTimeout = setTimeout(() => {
-      singleInput.value = parseInt(singleInput.value) + 1;
-    }, 300);
-  }
-});
+input[type="number"] {
+  font-size: 18px; /* 🔐 must be 16px+ to prevent iOS zoom */
+  width: 80px;
+  padding: 5px;
+  margin-left: 10px;
+  text-align: center;
+
+  /* Prevent zoom on focus */
+  touch-action: manipulation;
+}
