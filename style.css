@@ -1,0 +1,42 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f2f2f2;
+
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation; /* ✅ Prevent double-tap zoom */
+}
+
+.container {
+  margin-top: 50px;
+}
+
+#tapArea {
+  background-color: #fff;
+  padding: 60px;
+  margin: 30px;
+  border: 2px dashed #333;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.counters {
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+label {
+  font-size: 18px;
+}
+
+input[type="number"] {
+  font-size: 16px; /* ✅ Stops zoom-on-input on iOS */
+  width: 80px;
+  padding: 5px;
+  margin-left: 10px;
+  text-align: center;
+}
