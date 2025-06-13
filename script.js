@@ -1,53 +1,42 @@
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+// 1️⃣ Prevent double-tap zoom on mobile browsers
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) {
+    e.preventDefault();
+  }
+  lastTouchEnd = now;
+}, { passive: false });
 
-  /* 🔒 Prevent zoom and gestures */
-  touch-action: none;
-  -ms-touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  overflow-x: hidden;
-}
+const tapArea = document.getElementById("tapArea");
+const singleInput = document.getElementById("singleCount");
+const doubleInput = document.getElementById("doubleCount");
+const longInput = document.getElementById("longCount");
 
-.container {
-  text-align: center;
-  margin-top: 50px;
-}
+let lastTapTime = 0, tapTimeout = null, longPressTimeout = null, isLongPress = false;
 
-#tapArea {
-  background-color: #fff;
-  padding: 60px;
-  margin: 30px;
-  border: 2px dashed #333;
-  border-radius: 10px;
-  cursor: pointer;
+tapArea.addEventListener("touchstart", (e) => {
+  e.preventDefault(); // block native gestures
+  isLongPress = false;
+  longPressTimeout = setTimeout(() => {
+    isLongPress = true;
+    longInput.value = parseInt(longInput.value) + 1;
+  }, 500);
+});
 
-  /* Make sure zoom doesn't trigger */
-  touch-action: manipulation;
-}
-
-.counters {
-  font-size: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-label {
-  font-size: 18px;
-}
-
-input[type="number"] {
-  font-size: 18px; /* 🔐 must be 16px+ to prevent iOS zoom */
-  width: 80px;
-  padding: 5px;
-  margin-left: 10px;
-  text-align: center;
-
-  /* Prevent zoom on focus */
-  touch-action: manipulation;
-}
+tapArea.addEventListener("touchend", (e) => {
+  e.preventDefault(); // block native gestures
+  const now = Date.now(), delta = now - lastTapTime;
+  clearTimeout(longPressTimeout);
+  if (isLongPress) return;
+  if (delta < 300) {
+    clearTimeout(tapTimeout);
+    doubleInput.value = parseInt(doubleInput.value) + 1;
+    lastTapTime = 0;
+  } else {
+    lastTapTime = now;
+    tapTimeout = setTimeout(() => {
+      singleInput.value = parseInt(singleInput.value) + 1;
+    }, 300);
+  }
+});
