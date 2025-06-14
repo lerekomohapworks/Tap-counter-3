@@ -3,28 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Tap Counter</title>
+  <title>Tap Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Tap Counter</h1>
+    <h1>Tap Tracker</h1>
 
     <div id="tapArea">
       <p>Tap anywhere inside this box</p>
     </div>
 
+    <!-- 🔔 This is the message display area -->
+    <div id="statusMessage">No tap yet</div>
+
     <div class="counters">
       <label>
-        Single Taps:
+        Follow Ups:
         <input type="number" id="singleCount" value="0" />
       </label>
       <label>
-        Double Taps:
+        Outbound:
         <input type="number" id="doubleCount" value="0" />
       </label>
       <label>
-        Long Taps:
+        Positive Replies:
         <input type="number" id="longCount" value="0" />
       </label>
     </div>
