@@ -1,4 +1,4 @@
-// 🔒 Prevent double-tap zoom on mobile
+// 🔒 Prevent double-tap zoom
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
@@ -9,6 +9,8 @@ document.addEventListener('touchend', function(e) {
 }, { passive: false });
 
 const tapArea = document.getElementById("tapArea");
+const status = document.getElementById("statusMessage");
+
 const singleInput = document.getElementById("singleCount");
 const doubleInput = document.getElementById("doubleCount");
 const longInput = document.getElementById("longCount");
@@ -18,26 +20,42 @@ let tapTimeout = null;
 let longPressTimeout = null;
 let isLongPress = false;
 
-// ✅ Load saved values on startup
-window.addEventListener("DOMContentLoaded", () => {
-  singleInput.value = localStorage.getItem("followUps") || 0;
-  doubleInput.value = localStorage.getItem("outbound") || 0;
-  longInput.value = localStorage.getItem("positiveReplies") || 0;
-});
-
-// ✅ Save to localStorage when value changes (manual edit)
-[singleInput, doubleInput, longInput].forEach((input, index) => {
-  input.addEventListener("input", () => {
-    saveCounts();
-  });
-});
-
+// ✅ Save the current values
 function saveCounts() {
   localStorage.setItem("followUps", singleInput.value);
   localStorage.setItem("outbound", doubleInput.value);
   localStorage.setItem("positiveReplies", longInput.value);
 }
 
+// ✅ Show message on screen
+function showStatus(text) {
+  status.textContent = text;
+  status.style.opacity = 1;
+}
+
+// ✅ Load saved values
+window.addEventListener("DOMContentLoaded", () => {
+  singleInput.value = localStorage.getItem("followUps") || 0;
+  doubleInput.value = localStorage.getItem("outbound") || 0;
+  longInput.value = localStorage.getItem("positiveReplies") || 0;
+});
+
+// ✅ Save on input
+[singleInput, doubleInput, longInput].forEach(input => {
+  input.addEventListener("input", saveCounts);
+
+  // 🧠 Replace single digit with 0 when backspace is pressed
+  input.addEventListener("keydown", (e) => {
+    const val = input.value;
+    if (e.key === "Backspace" && val.length === 1) {
+      e.preventDefault();
+      input.value = 0;
+      saveCounts();
+    }
+  });
+});
+
+// ✅ Tap Detection
 tapArea.addEventListener("touchstart", (e) => {
   e.preventDefault();
   isLongPress = false;
@@ -45,28 +63,31 @@ tapArea.addEventListener("touchstart", (e) => {
   longPressTimeout = setTimeout(() => {
     isLongPress = true;
     longInput.value = parseInt(longInput.value) + 1;
+    showStatus("Positive rep");
     saveCounts();
   }, 500);
 });
 
 tapArea.addEventListener("touchend", (e) => {
   e.preventDefault();
-  const currentTime = Date.now();
-  const timeSinceLastTap = currentTime - lastTapTime;
+  const now = Date.now();
+  const delta = now - lastTapTime;
 
   clearTimeout(longPressTimeout);
 
   if (isLongPress) return;
 
-  if (timeSinceLastTap < 300) {
+  if (delta < 300) {
     clearTimeout(tapTimeout);
     doubleInput.value = parseInt(doubleInput.value) + 1;
+    showStatus("Outbound");
     saveCounts();
     lastTapTime = 0;
   } else {
-    lastTapTime = currentTime;
+    lastTapTime = now;
     tapTimeout = setTimeout(() => {
       singleInput.value = parseInt(singleInput.value) + 1;
+      showStatus("Follow ups");
       saveCounts();
     }, 300);
   }
