@@ -1,24 +1,30 @@
-body {
+html, body {
+  margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
-  text-align: center;
   background-color: #f2f2f2;
 
+  touch-action: none;
+  -ms-touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation; /* ✅ Prevent double-tap zoom */
+  overflow-x: hidden;
 }
 
 .container {
+  text-align: center;
   margin-top: 50px;
 }
 
 #tapArea {
   background-color: #fff;
-  padding: 60px;
+  padding: 100px; /* 🔍 Made the tap area larger */
   margin: 30px;
   border: 2px dashed #333;
   border-radius: 10px;
   cursor: pointer;
+
+  touch-action: manipulation;
 }
 
 .counters {
@@ -34,9 +40,11 @@ label {
 }
 
 input[type="number"] {
-  font-size: 16px; /* ✅ Stops zoom-on-input on iOS */
+  font-size: 18px;
   width: 80px;
   padding: 5px;
   margin-left: 10px;
   text-align: center;
+
+  touch-action: manipulation;
 }
