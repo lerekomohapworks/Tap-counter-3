@@ -1,4 +1,4 @@
-// 🔒 Prevent double-tap zoom
+// 🔒 Prevent double-tap zoom on mobile
 let lastTouchEnd = 0;
 document.addEventListener('touchend', function(e) {
   const now = Date.now();
@@ -20,42 +20,53 @@ let tapTimeout = null;
 let longPressTimeout = null;
 let isLongPress = false;
 
-// ✅ Save the current values
 function saveCounts() {
   localStorage.setItem("followUps", singleInput.value);
   localStorage.setItem("outbound", doubleInput.value);
   localStorage.setItem("positiveReplies", longInput.value);
 }
 
-// ✅ Show message on screen
 function showStatus(text) {
   status.textContent = text;
   status.style.opacity = 1;
 }
 
-// ✅ Load saved values
 window.addEventListener("DOMContentLoaded", () => {
   singleInput.value = localStorage.getItem("followUps") || 0;
   doubleInput.value = localStorage.getItem("outbound") || 0;
   longInput.value = localStorage.getItem("positiveReplies") || 0;
 });
 
-// ✅ Save on input
 [singleInput, doubleInput, longInput].forEach(input => {
+  // Save on input change
   input.addEventListener("input", saveCounts);
 
-  // 🧠 Replace single digit with 0 when backspace is pressed
+  // 🧠 Backspace turns single digit into 0
   input.addEventListener("keydown", (e) => {
     const val = input.value;
+
+    // If Backspace on a single digit → set to 0
     if (e.key === "Backspace" && val.length === 1) {
       e.preventDefault();
       input.value = 0;
       saveCounts();
     }
+
+    // If value is "0" and user types a digit (not Backspace) → replace it
+    if (
+      val === "0" &&
+      e.key.length === 1 &&
+      /^[0-9]$/.test(e.key) &&
+      e.key !== "0"
+    ) {
+      e.preventDefault(); // stop default "03"
+      input.value = e.key; // set to just "3"
+      saveCounts();
+    }
   });
 });
 
-// ✅ Tap Detection
+// Tap Detection
 tapArea.addEventListener("touchstart", (e) => {
   e.preventDefault();
   isLongPress = false;
