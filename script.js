@@ -1,6 +1,6 @@
 // 🔒 Prevent double-tap zoom on mobile
 let lastTouchEnd = 0;
-document.addEventListener('touchend', function(e) {
+document.addEventListener('touchend', function (e) {
   const now = Date.now();
   if (now - lastTouchEnd <= 300) {
     e.preventDefault();
@@ -31,42 +31,46 @@ function showStatus(text) {
   status.style.opacity = 1;
 }
 
+// ✅ Load saved values on startup
 window.addEventListener("DOMContentLoaded", () => {
   singleInput.value = localStorage.getItem("followUps") || 0;
   doubleInput.value = localStorage.getItem("outbound") || 0;
   longInput.value = localStorage.getItem("positiveReplies") || 0;
 });
 
+// ✅ INPUT: Save & format behavior
 [singleInput, doubleInput, longInput].forEach(input => {
-  // Save on input change
   input.addEventListener("input", saveCounts);
 
-  // 🧠 Backspace turns single digit into 0
   input.addEventListener("keydown", (e) => {
     const val = input.value;
 
-    // If Backspace on a single digit → set to 0
     if (e.key === "Backspace" && val.length === 1) {
       e.preventDefault();
       input.value = 0;
       saveCounts();
     }
 
-    // If value is "0" and user types a digit (not Backspace) → replace it
     if (
       val === "0" &&
       e.key.length === 1 &&
       /^[0-9]$/.test(e.key) &&
       e.key !== "0"
     ) {
-      e.preventDefault(); // stop default "03"
-      input.value = e.key; // set to just "3"
-      saveCounts();
+      e.preventDefault();
+      setTimeout(() => {
+        input.value = e.key;
+        input.setSelectionRange(1, 1);
+        saveCounts();
+      }, 0);
     }
   });
 });
 
-// Tap Detection
+//
+// 📱 MOBILE TAPS
+//
+
 tapArea.addEventListener("touchstart", (e) => {
   e.preventDefault();
   isLongPress = false;
@@ -85,7 +89,6 @@ tapArea.addEventListener("touchend", (e) => {
   const delta = now - lastTapTime;
 
   clearTimeout(longPressTimeout);
-
   if (isLongPress) return;
 
   if (delta < 300) {
@@ -101,5 +104,40 @@ tapArea.addEventListener("touchend", (e) => {
       showStatus("Follow ups");
       saveCounts();
     }, 300);
+  }
+});
+
+//
+// 🖱 DESKTOP MOUSE SUPPORT
+//
+
+tapArea.addEventListener("click", (e) => {
+  if (e.detail === 1) {
+    // Single click
+    tapTimeout = setTimeout(() => {
+      singleInput.value = parseInt(singleInput.value) + 1;
+      showStatus("Follow ups");
+      saveCounts();
+    }, 300);
+  }
+});
+
+tapArea.addEventListener("dblclick", (e) => {
+  clearTimeout(tapTimeout); // cancel single
+  doubleInput.value = parseInt(doubleInput.value) + 1;
+  showStatus("Outbound");
+  saveCounts();
+});
+
+//
+// ⌨ SPACEBAR = Long Tap for Desktop
+//
+
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    longInput.value = parseInt(longInput.value) + 1;
+    showStatus("Positive rep");
+    saveCounts();
   }
 });
