@@ -19,7 +19,10 @@ let lastTapTime = 0;
 let tapTimeout = null;
 let longPressTimeout = null;
 let isLongPress = false;
+let spacePressedAt = null;
+let spaceTapTimeout = null;
 
+// ✅ Save + Show
 function saveCounts() {
   localStorage.setItem("followUps", singleInput.value);
   localStorage.setItem("outbound", doubleInput.value);
@@ -31,14 +34,14 @@ function showStatus(text) {
   status.style.opacity = 1;
 }
 
-// ✅ Load saved values on startup
+// ✅ Load saved values
 window.addEventListener("DOMContentLoaded", () => {
   singleInput.value = localStorage.getItem("followUps") || 0;
   doubleInput.value = localStorage.getItem("outbound") || 0;
   longInput.value = localStorage.getItem("positiveReplies") || 0;
 });
 
-// ✅ INPUT: Save & format behavior
+// ✅ Input backspace and overwrite logic
 [singleInput, doubleInput, longInput].forEach(input => {
   input.addEventListener("input", saveCounts);
 
@@ -68,7 +71,7 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 //
-// 📱 MOBILE TAPS
+// 📱 MOBILE TOUCH TAPS
 //
 
 tapArea.addEventListener("touchstart", (e) => {
@@ -108,12 +111,13 @@ tapArea.addEventListener("touchend", (e) => {
 });
 
 //
-// 🖱 DESKTOP MOUSE SUPPORT
+// 🖱 DESKTOP MOUSE ONLY SUPPORT (No Touchpad)
 //
 
-tapArea.addEventListener("click", (e) => {
+tapArea.addEventListener("pointerdown", (e) => {
+  if (e.pointerType !== "mouse") return; // ✅ block touchpad, pen, etc.
+
   if (e.detail === 1) {
-    // Single click
     tapTimeout = setTimeout(() => {
       singleInput.value = parseInt(singleInput.value) + 1;
       showStatus("Follow ups");
@@ -123,21 +127,62 @@ tapArea.addEventListener("click", (e) => {
 });
 
 tapArea.addEventListener("dblclick", (e) => {
-  clearTimeout(tapTimeout); // cancel single
+  if (e.pointerType !== "mouse") return;
+  clearTimeout(tapTimeout);
   doubleInput.value = parseInt(doubleInput.value) + 1;
   showStatus("Outbound");
   saveCounts();
 });
 
 //
-// ⌨ SPACEBAR = Long Tap for Desktop
+// ⌨ SPACEBAR BEHAVIOR (Desktop)
 //
 
+let spaceHoldTimeout = null;
+let lastSpaceTapTime = 0;
+
 document.addEventListener("keydown", (e) => {
-  if (e.code === "Space") {
-    e.preventDefault();
+  if (e.code !== "Space" || e.repeat) return;
+  e.preventDefault();
+
+  spacePressedAt = Date.now();
+
+  // 🔒 LONG PRESS via hold
+  spaceHoldTimeout = setTimeout(() => {
     longInput.value = parseInt(longInput.value) + 1;
     showStatus("Positive rep");
     saveCounts();
+    spacePressedAt = null;
+  }, 500);
+});
+
+document.addEventListener("keyup", (e) => {
+  if (e.code !== "Space") return;
+  e.preventDefault();
+
+  clearTimeout(spaceHoldTimeout);
+
+  const now = Date.now();
+  const duration = now - (spacePressedAt || now);
+
+  // If it wasn't held long enough, count as single/double tap
+  if (duration < 500) {
+    const timeSinceLast = now - lastSpaceTapTime;
+    if (timeSinceLast < 300) {
+      // Double tap
+      doubleInput.value = parseInt(doubleInput.value) + 1;
+      showStatus("Outbound");
+      saveCounts();
+      lastSpaceTapTime = 0;
+    } else {
+      lastSpaceTapTime = now;
+      spaceTapTimeout = setTimeout(() => {
+        singleInput.value = parseInt(singleInput.value) + 1;
+        showStatus("Follow ups");
+        saveCounts();
+      }, 300);
+    }
   }
+
+  spacePressedAt = null;
 });
